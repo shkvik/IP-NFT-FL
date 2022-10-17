@@ -1,84 +1,52 @@
 pragma solidity >=0.6.0 <0.8.0;
 pragma abicoder v2;
 
-import "./import.sol";
-import "./roles_lib.sol";
+import "https://github.com/OpenZeppelin/openzeppelin-contracts/blob/release-v3.4/contracts/token/ERC721/ERC721.sol";
+import "https://github.com/OpenZeppelin/openzeppelin-contracts/blob/release-v3.4/contracts/utils/Counters.sol";
+import "https://github.com/OpenZeppelin/openzeppelin-contracts/blob/release-v3.4/contracts/access/Ownable.sol";
 
-contract ipnft_farcana_labs is ERC721, Ownable {
+import "./Common/common_contract.sol";
 
-    uint64 public gamesCount;
-    uint64 public playersCount;
-    uint64 public investorsCount;
-    uint64 public scientistsCount;
-    uint64 public gameStudiosCount;
-    uint64 public devicesCount;
-    
-    uint256 public investedAmount;
+contract IPNFT_farcanaLabs is ERC721, Ownable, CommonContract {
+
     uint256 public mintPirce = 0 ether;
     uint256 public maxSupply = 0;    
     bool    public isMintEnabled;
 
-    Game[]    private registeredGames;
-    Device[]  private registeredDevices;
-
-    Player[]     private registeredPlayers;
-    Investor[]   private registeredInvestors;
-    Scientist[]  private registeredScientist;
-    GameStudio[] private registeredGameStudios;
-
-
     mapping(address => uint256) public mintedWallets;
-
-    mapping(bytes32 => uint256) public deviceHash;
     mapping(bytes32 => uint256) public scientistHash;
-    mapping(bytes32 => uint256) public gameStudiosHash;
-
 
     //Сделать для инвесторов
     receive() external payable{ }
         
-    constructor() payable ERC721("IP-NFT FARCANA LABS", "IPNFT_FARCANA_LABS") {
+    constructor() payable ERC721("IPNFT farcanaLabs", "IPNFT_farcanaLabs") {
         _setBaseURI("Dolbaebs/");
         maxSupply = 2;
     }
     
-    function playerRegistration(bytes32 hash, string memory dataURI) external  {
-        require(deviceHash[hash] > 0);
-        playersCount++;
-        Player memory player;
-        player.person = msg.sender;
-        player.deviceKey = hash;
-        player.dataURI = dataURI;
-        registeredPlayers.push(player);
+    function addDevice(string memory deviceName, string memory secretKey) external onlyOwner{
+        _addDevice(deviceName, secretKey);
     }
-
-
-    function addDevice(string memory deviceName, string memory secretKey) external onlyOwner {
-        Device memory device;
-        device.key = keccak256(abi.encode(secretKey));
-        device.name = deviceName;
-        registeredDevices.push(device);
-        deviceHash[device.key]++;
-    }
-
-    
-    function getRegisteredDevices() external view returns(Device[] memory) {
-        return registeredDevices;
-    }
-
-
-    // function decodeExample(uint256 deviceId, string memory key) external view returns(bool) {
-    //     bytes32 variable = keccak256(abi.encode(key));
-    //     return registeredDevices[deviceId].key == variable ? true : false;
-    // }
-
 
     function addGame(string memory gameName, string memory secretKey) external onlyOwner {
-        gamesCount++;
-        Game memory game;
-        game.key = keccak256(abi.encode(secretKey));
-        game.name = gameName;
-        registeredGames.push(game);
+        _addGame(gameName, secretKey);
+    }
+
+    function deleteGame(uint256 id) external onlyOwner {
+        _deleteGame(id);
+    }
+
+    function playerRegistration(bytes32 personalHashCode, string memory dataURI) external onlyOwner {
+        _playerRegistration(personalHashCode, dataURI);
+    }
+
+    function gameStudioRegistration(address studioWallet, string memory secretKey, string memory studioName) 
+    external onlyOwner {
+        _gameStudioRegistration(studioWallet, secretKey, studioName);
+    }
+
+    function getRegisteredDevices() external view returns(Device[] memory) {
+        return registeredDevices;
     }
 
     function getRegisteredGames() external view returns(Game[] memory) {
@@ -89,7 +57,6 @@ contract ipnft_farcana_labs is ERC721, Ownable {
     function toogleIsMintEnabled() external onlyOwner{
         isMintEnabled = !isMintEnabled;
     }    
-
 
     //Установить максимальное значение для максимального количества монет
     function setMaxSupply(uint256 _maxSupply) external onlyOwner{
