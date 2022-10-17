@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: FarcanaLabs
 pragma solidity >=0.6.0 <0.8.0;
 pragma abicoder v2;
 
@@ -8,9 +9,10 @@ import "https://github.com/OpenZeppelin/openzeppelin-contracts/blob/release-v3.4
 import "./Common/common_contract.sol";
 
 contract IPNFT_farcanaLabs is ERC721, Ownable, CommonContract {
+    uint256 public mintPirce = 1 ether;
+    uint256 public maxSupply = 0;
+    address payable public farcanaWallet;
 
-    uint256 public mintPirce = 0 ether;
-    uint256 public maxSupply = 0;    
     bool    public isMintEnabled;
 
     mapping(address => uint256) public mintedWallets;
@@ -19,13 +21,22 @@ contract IPNFT_farcanaLabs is ERC721, Ownable, CommonContract {
     //Сделать для инвесторов
     receive() external payable{ }
         
-    constructor() payable ERC721("IPNFT farcanaLabs", "IPNFT_farcanaLabs") {
+    constructor() payable ERC721("IPNFT farcanaLabs", "IPNFT Farcana Labs") {
         _setBaseURI("Dolbaebs/");
+        farcanaWallet = msg.sender;
         maxSupply = 2;
     }
+
+    function investMoney() external payable {
+        _investMoney();
+    }
     
-    function addDevice(string memory deviceName, string memory secretKey) external onlyOwner{
-        _addDevice(deviceName, secretKey);
+    function returnMoney() public {
+        _returnMoney(farcanaWallet);
+    }
+
+    function addDevice(string memory deviceName, string memory secretKey) external onlyOwner returns(bytes32){
+        return _addDevice(deviceName, secretKey);
     }
 
     function addGame(string memory gameName, string memory secretKey) external onlyOwner {
@@ -53,6 +64,10 @@ contract IPNFT_farcanaLabs is ERC721, Ownable, CommonContract {
         return registeredGames;
     }
 
+    function getPlayers() external view returns(Player[] memory){
+        return _getPlayers();
+    }
+
     //Переключить режим чеканки
     function toogleIsMintEnabled() external onlyOwner{
         isMintEnabled = !isMintEnabled;
@@ -63,7 +78,9 @@ contract IPNFT_farcanaLabs is ERC721, Ownable, CommonContract {
         maxSupply = _maxSupply;
     }
 
-
+    function getInvestorWallets() external view returns (address[] memory){
+        return _getInvestorWallets();
+    }
     //Чеканка (получение, покупка nft)
     function mint(Role role) external payable{
         require(isMintEnabled, 'minting not enabled');
@@ -72,7 +89,6 @@ contract IPNFT_farcanaLabs is ERC721, Ownable, CommonContract {
 
         //Распределить цену для ролей
         require(msg.value == mintPirce, 'wrong value');
-        
         mintedWallets[msg.sender]++;
         uint256 tokenId = totalSupply();
         _safeMint(msg.sender, tokenId);

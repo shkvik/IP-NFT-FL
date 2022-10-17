@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: FarcanaLabs
+
 pragma solidity >=0.6.0 <0.8.0;
 pragma abicoder v2;
 
@@ -22,16 +24,11 @@ contract GameStudioContract {
     Game[]       internal registeredGames;
     GameStudio[] internal registeredGameStudios;
 
-    event eGameStudioRegistration(
-        address indexed studioWallet,
-        string  indexed studioName
-        );
-
+    event eGameStudioRegistration(address indexed studioWallet, string indexed studioName);
+    
     mapping(bytes32 => uint256) public gameStudiosHash;
     mapping(bytes32 => uint256) public gameHash;
     
-    
-
     function _getGameStudios() internal view returns(GameStudio[] memory){
         return registeredGameStudios;
     }
