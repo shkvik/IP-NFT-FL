@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: FarcanaLabs
 
-pragma solidity >=0.6.0 <0.8.0;
+pragma solidity >=0.7.0 <0.8.0;
 pragma abicoder v2;
 
-import "../Player/player-contract.sol";
+import "../Donor/donor-contract.sol";
 import "../GameStudio/gameStudio-contract.sol";
 import "../Investor/investor-contract.sol";
 
@@ -19,9 +19,8 @@ enum Role {
 }
 
 
-contract CommonContract is PlayerContract, GameStudioContract, InvestorContract {
+contract CommonContract is DonorContract, GameStudioContract, InvestorContract {
     
-    uint64 public investorsCount;
     uint64 public scientistsCount;
     uint256 public investedAmount;
 

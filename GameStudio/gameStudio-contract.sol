@@ -4,74 +4,48 @@ pragma solidity >=0.6.0 <0.8.0;
 pragma abicoder v2;
 
 struct Game {
-    uint256 id;
-    bytes32 key;
-    string  name;
+    bool     isValue;
+    string   name;
+    string   maps;
+    string   deviceIntegration;
 }
 
 struct GameStudio {
-    uint256  id;
-    address  person;
-    bytes32  studioKey;
-    uint256  scores;
-    string   studioName;
-    string[] games;
-    string[] maps;
-    string[] deviceIntegrations;
+    bool     isValue;
+    string   name;
+    string   game;
 }
 
-contract GameStudioContract {    
-    Game[]       internal registeredGames;
-    GameStudio[] internal registeredGameStudios;
+contract GameStudioContract {
+
+    mapping(address => Game)       public registeredGames;
+    mapping(address => GameStudio) public registeredGameStudios;
 
     event eGameStudioRegistration(address indexed studioWallet, string indexed studioName);
-    
-    mapping(bytes32 => uint256) public gameStudiosHash;
-    mapping(bytes32 => uint256) public gameHash;
-    
-    function _getGameStudios() internal view returns(GameStudio[] memory){
-        return registeredGameStudios;
-    }
-    function _getGameStudiosCount() internal view returns(uint256){
-        return registeredGameStudios.length;
-    } 
-    function _getGames() internal view returns(Game[] memory){
-        return registeredGames;
-    }
-    function _getGamesCount() internal view returns (uint256){
-        return registeredGames.length;
-    }
+    event eGameRegistration(string indexed studioName, string indexed gameName);
 
-    function _addGame(string memory gameName, string memory secretKey) internal {
+    function _gameRegistration(address owner,
+                               string  memory name,
+                               string  memory maps,
+                               string  memory deviceIntegration
+                               ) internal {
+        require(!registeredGames[owner].isValue, 'this game already registered');
         Game memory game;
-        game.key = keccak256(abi.encode(secretKey));
-        game.name = gameName;
-        registeredGames.push(game);
-        registeredGames[registeredGames.length].id = registeredGames.length;
-        gameHash[game.key]++;
+        game.isValue = true;
+        game.name = name;
+        game.maps = maps;
+        game.deviceIntegration = deviceIntegration;
+        registeredGames[owner] = game;
+        registeredGameStudios[owner].game = name;
+        emit eGameRegistration(registeredGameStudios[owner].name, name);
     }
 
-    function _deleteGame(uint256 id) internal {
-        delete registeredGames[id];
-    }
 
-    function _gameStudioRegistration(
-        address studioWallet,
-        string memory secretKey,
-        string memory studioName
-        ) internal {
-        
+    function _gameStudioRegistration(address studioWallet, string memory studioName) internal {
         GameStudio memory gameStudio;
-        gameStudio.person = studioWallet;
-        gameStudio.studioKey = keccak256(abi.encode(secretKey));
-        gameStudio.studioName = studioName;
-        registeredGameStudios.push(gameStudio);
-        
+        gameStudio.isValue    = true;
+        gameStudio.name = studioName;
+        registeredGameStudios[studioWallet] = gameStudio;
         emit eGameStudioRegistration(studioWallet, studioName);
-        gameStudiosHash[gameStudio.studioKey]++;
-    }
-
-    function _gameStudioRegistration() internal {
-        
     }
 }

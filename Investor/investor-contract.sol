@@ -4,47 +4,40 @@ pragma solidity >=0.6.0 <0.8.0;
 pragma abicoder v2;
 
 struct Investor {
-    uint256 id;
-    address person;
-    uint256 balance;
+    bool    isValue;
+    uint256 coins;
 }
 
 contract InvestorContract {
-    uint256   public  investBalance;
-    uint256   private investorsCount;
-    uint256   private minimum = 0.05 ether;
-    address[] public  investorWallets;
+    uint256 public requiredInvestmentAmount;
+    uint256 public maxSupplyCoins;
+    uint256 public coinCost;
+    uint256 public investorsCount;
 
-    mapping(address => Investor) public investors;
+    event purchaseCoins(address indexed investor, uint256 count);
+
+    mapping(address => Investor) public registeredInvestors;
     
-    function _investMoney() internal {
-        require(msg.value > minimum, 'your investment amount is below the minimum');
-
-        if(investors[msg.sender].id == 0){
-            investorsCount++;
-            Investor memory investor;
-            investor.id = investorsCount;
-            investor.person = msg.sender;
-            investor.balance = msg.value;
-            investors[msg.sender] = investor;
-            investorWallets.push(msg.sender);
-        }
-        else {
-            investors[msg.sender].balance += msg.value;
-        }
+    function _setCoinBalance(uint256 coinsCount, uint256 amount) internal {
+        maxSupplyCoins = coinsCount;
+        requiredInvestmentAmount = amount;
+        coinCost = (amount / coinsCount);
     }
 
-    function _returnMoney(address payable payer) internal {
-        investors[msg.sender];
-        require(investors[msg.sender].id > 0, 'zero id');
-        require(investors[msg.sender].balance > minimum, ''); //Уточнить условия
-        investBalance -= investors[msg.sender].balance;
-        payable(payer).transfer(investors[msg.sender].balance);
-        delete investors[msg.sender];
+    function _buyCoins(uint256 coinCount) internal {
+        require(maxSupplyCoins > coinCount, 'this number of coins exceeds the current limit');
+        require(msg.value == (coinCost * coinCount), 'incorrect amount');
+        if(!registeredInvestors[msg.sender].isValue) addNewInvestor();
+        else registeredInvestors[msg.sender].coins += coinCount;
+        maxSupplyCoins -= coinCount;
+        emit purchaseCoins(msg.sender, coinCount);
     }
 
-    function _getInvestorWallets() internal view returns (address[] memory){
-        return investorWallets;
+    function addNewInvestor() private {
+        investorsCount++;
+        Investor memory investor;
+        investor.isValue = true;
+        registeredInvestors[msg.sender] = investor;
     }
 }
 

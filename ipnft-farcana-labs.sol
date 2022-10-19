@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: FarcanaLabs
-pragma solidity >=0.6.0 <0.8.0;
+pragma solidity >=0.7.0 <0.8.0;
 pragma abicoder v2;
+
 
 import "https://github.com/OpenZeppelin/openzeppelin-contracts/blob/release-v3.4/contracts/token/ERC721/ERC721.sol";
 import "https://github.com/OpenZeppelin/openzeppelin-contracts/blob/release-v3.4/contracts/utils/Counters.sol";
@@ -9,63 +10,47 @@ import "https://github.com/OpenZeppelin/openzeppelin-contracts/blob/release-v3.4
 import "./Common/common_contract.sol";
 
 contract IPNFT_farcanaLabs is ERC721, Ownable, CommonContract {
+    string  public legalAgreement;
     uint256 public mintPirce = 1 ether;
     uint256 public maxSupply = 0;
-    address payable public farcanaWallet;
 
-    bool    public isMintEnabled;
+    bool public isMintEnabled;
 
     mapping(address => uint256) public mintedWallets;
-    mapping(bytes32 => uint256) public scientistHash;
+
 
     //Сделать для инвесторов
-    receive() external payable{ }
+    receive() external payable{
+
+    }
         
-    constructor() payable ERC721("IPNFT farcanaLabs", "IPNFT Farcana Labs") {
-        _setBaseURI("Dolbaebs/");
-        farcanaWallet = msg.sender;
-        maxSupply = 2;
+    constructor(string memory agreement,
+                string memory projectName,
+                string memory symbol,
+                string memory baseURI,
+                uint256 coinsCount,
+                uint256 amount) payable ERC721(projectName, symbol) {
+        
+        _setCoinBalance(coinsCount, amount);
+        _setBaseURI(baseURI);
+        legalAgreement = agreement;
     }
 
-    function investMoney() external payable {
-        _investMoney();
-    }
-    
-    function returnMoney() public {
-        _returnMoney(farcanaWallet);
+    function buyCoins(uint256 coinCount) external payable {
+        _buyCoins(coinCount);
     }
 
     function addDevice(string memory deviceName, string memory secretKey) external onlyOwner returns(bytes32){
         return _addDevice(deviceName, secretKey);
     }
 
-    function addGame(string memory gameName, string memory secretKey) external onlyOwner {
-        _addGame(gameName, secretKey);
+    function donorRegistration(bytes32 personalHashCode, string memory dataURI) external {
+        _donorRegistration(personalHashCode, dataURI);
     }
 
-    function deleteGame(uint256 id) external onlyOwner {
-        _deleteGame(id);
-    }
-
-    function playerRegistration(bytes32 personalHashCode, string memory dataURI) external onlyOwner {
-        _playerRegistration(personalHashCode, dataURI);
-    }
-
-    function gameStudioRegistration(address studioWallet, string memory secretKey, string memory studioName) 
+    function gameStudioRegistration(address studioWallet, string memory studioName) 
     external onlyOwner {
-        _gameStudioRegistration(studioWallet, secretKey, studioName);
-    }
-
-    function getRegisteredDevices() external view returns(Device[] memory) {
-        return registeredDevices;
-    }
-
-    function getRegisteredGames() external view returns(Game[] memory) {
-        return registeredGames;
-    }
-
-    function getPlayers() external view returns(Player[] memory){
-        return _getPlayers();
+        _gameStudioRegistration(studioWallet, studioName);
     }
 
     //Переключить режим чеканки
@@ -78,9 +63,7 @@ contract IPNFT_farcanaLabs is ERC721, Ownable, CommonContract {
         maxSupply = _maxSupply;
     }
 
-    function getInvestorWallets() external view returns (address[] memory){
-        return _getInvestorWallets();
-    }
+
     //Чеканка (получение, покупка nft)
     function mint(Role role) external payable{
         require(isMintEnabled, 'minting not enabled');
@@ -95,9 +78,15 @@ contract IPNFT_farcanaLabs is ERC721, Ownable, CommonContract {
 
         string memory tokenURI = "default"; 
 
-        if(role == Role.Player) tokenURI = "Player";           
+        if(role == Role.Player)   tokenURI = "Player";           
         if(role == Role.Investor) tokenURI = "Investor";
 
         _setTokenURI(tokenId,  tokenURI);
+    }
+
+    function checkYourRole() public {
+        registeredInvestors[msg.sender].isValue;
+        registeredDonors[msg.sender].isValue;
+        registeredGameStudios[msg.sender].isValue;
     }
 }
