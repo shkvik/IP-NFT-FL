@@ -22,11 +22,7 @@ contract DonorContract {
     mapping(bytes32 => Device) public registeredDevices;
     mapping(address => Donor)  public registeredDonors;
 
-    event ePlayerRegistration(address indexed studioWallet, string  indexed studioName);
-        
-    function _getPlayersCount() internal view returns (uint256){
-        return donorCount;
-    }
+    event eDonorRegistration(address indexed donorAddress, string donorURI);
 
     function _addDevice(string memory deviceName, string memory secretKey) internal returns (bytes32) {
         bytes32 deviceHash = keccak256(abi.encode(secretKey));
@@ -51,5 +47,6 @@ contract DonorContract {
         donor.deviceKey = deviceHashCode;
         registeredDonors[msg.sender] = donor;
         donorCount++;
+        emit eDonorRegistration(msg.sender, dataURI);
     }
 }

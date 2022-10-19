@@ -16,6 +16,7 @@ contract IPNFT_farcanaLabs is ERC721, Ownable, CommonContract {
 
     bool public isMintEnabled;
 
+    mapping(address => bool)    public registeredWallets;
     mapping(address => uint256) public mintedWallets;
 
 
@@ -37,20 +38,23 @@ contract IPNFT_farcanaLabs is ERC721, Ownable, CommonContract {
     }
 
     function buyCoins(uint256 coinCount) external payable {
-        _buyCoins(coinCount);
+        _buyCoins(coinCount); registeredWallets[msg.sender] = true;
     }
 
     function addDevice(string memory deviceName, string memory secretKey) external onlyOwner returns(bytes32){
         return _addDevice(deviceName, secretKey);
     }
 
-    function donorRegistration(bytes32 personalHashCode, string memory dataURI) external {
+    function donorRegistration(bytes32 personalHashCode, string memory dataURI) public {
+        require(!registeredWallets[msg.sender], 'your wallet already registered');
         _donorRegistration(personalHashCode, dataURI);
+        registeredWallets[msg.sender] = true;
     }
 
     function gameStudioRegistration(address studioWallet, string memory studioName) 
     external onlyOwner {
         _gameStudioRegistration(studioWallet, studioName);
+        registeredWallets[studioWallet] = true;
     }
 
     //Переключить режим чеканки
@@ -65,7 +69,8 @@ contract IPNFT_farcanaLabs is ERC721, Ownable, CommonContract {
 
 
     //Чеканка (получение, покупка nft)
-    function mint(Role role) external payable{
+    function mint() external payable{
+        require(registeredWallets[msg.sender], "you haven't rights to receive ipnft");
         require(isMintEnabled, 'minting not enabled');
         require(mintedWallets[msg.sender] < 1, 'exceeds max per wallet');
         require(maxSupply > totalSupply(), 'sold out');
@@ -78,15 +83,19 @@ contract IPNFT_farcanaLabs is ERC721, Ownable, CommonContract {
 
         string memory tokenURI = "default"; 
 
-        if(role == Role.Player)   tokenURI = "Player";           
-        if(role == Role.Investor) tokenURI = "Investor";
 
         _setTokenURI(tokenId,  tokenURI);
     }
 
-    function checkYourRole() public {
-        registeredInvestors[msg.sender].isValue;
-        registeredDonors[msg.sender].isValue;
-        registeredGameStudios[msg.sender].isValue;
+    function checkYourRole() public view returns(bool) {
+
+        if(registeredInvestors  [msg.sender].isValue ||
+           registeredDonors     [msg.sender].isValue || 
+           registeredGameStudios[msg.sender].isValue){
+           return true;
+        }
+        else{
+            return false;
+        }
     }
 }
