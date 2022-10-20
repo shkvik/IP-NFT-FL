@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: FarcanaLabs
 
-pragma solidity >=0.6.0 <0.8.0;
+pragma solidity ^0.8.0;
 pragma abicoder v2;
 
 struct Game {
@@ -29,6 +29,7 @@ contract GameStudioContract {
                                string  memory maps,
                                string  memory deviceIntegration
                                ) internal {
+        require(registeredGames[owner].isValue, 'invalid owner');
         require(!registeredGames[owner].isValue, 'this game already registered');
         Game memory game;
         game.isValue = true;

@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: FarcanaLabs
 
-pragma solidity >=0.6.0 <0.8.0;
+pragma solidity ^0.8.0;
 pragma abicoder v2;
 
 struct Investor {
@@ -27,16 +27,17 @@ contract InvestorContract {
     function _buyCoins(uint256 coinCount) internal {
         require(maxSupplyCoins > coinCount, 'this number of coins exceeds the current limit');
         require(msg.value == (coinCost * coinCount), 'incorrect amount');
-        if(!registeredInvestors[msg.sender].isValue) addNewInvestor();
+        if(!registeredInvestors[msg.sender].isValue) addNewInvestor(coinCount);
         else registeredInvestors[msg.sender].coins += coinCount;
         maxSupplyCoins -= coinCount;
         emit purchaseCoins(msg.sender, coinCount);
     }
 
-    function addNewInvestor() private {
+    function addNewInvestor(uint256 coins) private {
         investorsCount++;
         Investor memory investor;
         investor.isValue = true;
+        investor.coins += coins;
         registeredInvestors[msg.sender] = investor;
     }
 }
