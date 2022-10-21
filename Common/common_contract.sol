@@ -6,6 +6,20 @@ import "../GameStudio/gameStudio-contract.sol";
 import "../Investor/investor-contract.sol";
 import "../Scientist/scientist-contract.sol";
 
+enum Role {
+    None,
+    Donor,
+    Investor,
+    GameStudio,
+    Scientist
+}
+
+struct User {
+    bool    isMinted;
+    Role    role;
+    uint256 tokenId;
+}
+
 contract CommonContract is DonorContract, GameStudioContract, InvestorContract, ScientistContract {
 
     function _whenFirstInvestAmountReady() internal {
@@ -63,6 +77,4 @@ contract CommonContract is DonorContract, GameStudioContract, InvestorContract, 
         scientist.coins -= coinsCount;
         maxSupplyCoins += coinsCount;
     }
-
-    
 }
