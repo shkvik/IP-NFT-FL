@@ -9,7 +9,10 @@ struct Investor {
 }
 
 contract InvestorContract {
+
+    uint256 public farcanaLabsShare;
     uint256 public requiredInvestmentAmount;
+    uint256 public initialNumberOfCoins;
     uint256 public maxSupplyCoins;
     uint256 public coinCost;
     uint256 public investorsCount;
@@ -18,7 +21,13 @@ contract InvestorContract {
 
     mapping(address => Investor) public registeredInvestors;
     
-    function _setCoinBalance(uint256 coinsCount, uint256 amount) internal {
+    function farcanaLabsTake(uint256 coinsCount) internal {
+        farcanaLabsShare = coinsCount;
+        maxSupplyCoins -= coinsCount;
+    }
+
+    function setCoinBalance(uint256 coinsCount, uint256 amount) internal {
+        initialNumberOfCoins = coinsCount;
         maxSupplyCoins = coinsCount;
         requiredInvestmentAmount = amount;
         coinCost = (amount / coinsCount);

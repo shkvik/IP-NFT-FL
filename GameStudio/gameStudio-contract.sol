@@ -13,6 +13,7 @@ struct Game {
 struct GameStudio {
     bool     isValue;
     string   name;
+    uint256  coins;
     string   game;
 }
 
@@ -29,7 +30,7 @@ contract GameStudioContract {
                                string  memory maps,
                                string  memory deviceIntegration
                                ) internal {
-        require(registeredGames[owner].isValue, 'invalid owner');
+        require(registeredGameStudios[owner].isValue, 'invalid owner');
         require(!registeredGames[owner].isValue, 'this game already registered');
         Game memory game;
         game.isValue = true;

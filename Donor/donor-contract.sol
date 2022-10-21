@@ -1,12 +1,11 @@
 // SPDX-License-Identifier: FarcanaLabs
-
 pragma solidity ^0.8.0;
-pragma abicoder v2;
 
 struct Donor {
     bool     isValue;
     bytes32  deviceKey;
     string   dataURI;
+    uint256  coins;
 }
 
 struct Device {

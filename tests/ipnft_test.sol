@@ -12,22 +12,18 @@ import "remix_accounts.sol";
 // <import file to test>
 import "../ipnft-farcana-labs.sol";
 
-// 'beforeAll' runs before all other tests
-// More special functions are: 'beforeEach', 'beforeAll', 'afterEach' & 'afterAll'
-// Use 'Assert' methods: https://remix-ide.readthedocs.io/en/latest/assert_library.html
-// File name has to end with '_test.sol', this file can contain more than one testSuite contracts
-// Custom Transaction Context: https://remix-ide.readthedocs.io/en/latest/unittesting.html#customization
 
+string  constant agreement        = "Agrreement";
+string  constant projectName      = "Project Name";
+string  constant symbol           = "Symbol";
+string  constant URI              = "Base URI";
+uint256 constant unixTimeDeadline = 1666323128;
+uint256 constant coinsCount       = 1000;
+uint256 constant amount           = 1000;
+uint256 constant fixFarcaLabsShare= 100;
+address constant sci_wallet       = 0xdD870fA1b7C4700F2BD7f44238821C26f7392148;
 
-
-string  constant agreement   = "Agrreement";
-string  constant projectName = "Project Name";
-string  constant symbol      = "Symbol";
-string  constant URI         = "Base URI";
-uint256 constant coinsCount  = 1000;
-uint256 constant amount      = 1000; 
-
-contract testIPNFT is IPNFT_farcanaLabs(agreement, projectName, symbol, URI, coinsCount, amount) {
+contract ipnft_test is IPNFT_farcanaLabs(agreement, projectName, symbol, URI, unixTimeDeadline, coinsCount, amount, fixFarcaLabsShare, sci_wallet) {
 
     event StringFailure(string stringFailure);
 
@@ -82,21 +78,25 @@ contract testIPNFT is IPNFT_farcanaLabs(agreement, projectName, symbol, URI, coi
     }
 
     
+    //Only owner
+    function gameStudioRegistrationTest() public {
+        address studioWallet = TestsAccounts.getAccount(3);
+        string memory studioName = "Farcana";
+        gameStudioRegistration(studioWallet, studioName);
 
-    function gameRegistrationTest() public {
-        
-        // address studioWallet =  TestsAccounts.getAccount(2);
-        // string memory studioName = "Farcana";
-        // ipnft.gameStudioRegistration(studioWallet, studioName);
-
-        // address owner = studioWallet;
-        // string  memory name              = "Farcana";
-        // string  memory maps              = "Oasis, Military Base";
-        // string  memory deviceIntegration = "HearBeat Mouse";
-        // ipnft.gameRegistration(owner, name, maps, deviceIntegration);
-        // Assert.ok(true, 'some error');
+        Assert.ok(registeredGameStudios[studioWallet].isValue, "not registering address");
     }
 
+
+    function gameRegistrationTest() public {
+        address owner = TestsAccounts.getAccount(3);
+        string  memory name              = "Farcana";
+        string  memory maps              = "Oasis, Military Base";
+        string  memory deviceIntegration = "HearBeat Mouse";
+        gameRegistration(owner, name, maps, deviceIntegration);
+        
+        Assert.ok(registeredGames[owner].isValue, "not registering address");
+    }
 
     /// #sender: account-1
     /// #value: 100
@@ -106,6 +106,7 @@ contract testIPNFT is IPNFT_farcanaLabs(agreement, projectName, symbol, URI, coi
         Assert.equal(msg.value, 100, "Invalid value");
     }
 
+    
 
     /// #sender: account-2
     function tryDonorRegistrationSecondTimeTest() public {
