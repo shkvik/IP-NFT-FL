@@ -7,7 +7,6 @@ struct Scientist {
     string  resultLink;
     uint256 startDate;
     uint256 deadline;
-    uint256 coins;
 }
 
 contract ScientistContract {
@@ -17,13 +16,5 @@ contract ScientistContract {
     bool public investAmountReady;
     bool public experimentReady;
     
-
-    function _setResultLink(string memory link) internal {
-        scientist.resultLink = link;
-    }
-
-    function _changDeadline(uint256 data) internal {
-        scientist.deadline = data;
-    }
 }
 

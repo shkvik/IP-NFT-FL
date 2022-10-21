@@ -56,9 +56,14 @@ contract IPNFT_farcanaLabs is ERC721, Ownable, CommonContract{
         scientist.legalAgreement = agreement;
         scientist.startDate = block.timestamp;
         scientist.deadline = unixTimeDeadline;
+        scientist.resultLink = "link"; //after change
+        scientist.deadline = 229; //after change
         setCoinBalance(coinsCount, amount);
         farcanaLabsTake(fixFarcanaLabsShare);
         ipnftWallet = payable(msg.sender);
+        registeredUsers[scientistWallet].isMinted = true;
+        registeredUsers[scientistWallet].role = Role.Scientist;
+        mint(scientistWallet);
     }
 
     function checkUser(address person) external view returns(User memory){
@@ -86,6 +91,7 @@ contract IPNFT_farcanaLabs is ERC721, Ownable, CommonContract{
         require(!registeredUsers[msg.sender].isMinted, 'this wallet already registered');
         _donorRegistration(personalHashCode, dataURI);
         registeredUsers[msg.sender].isMinted = true;
+        registeredUsers[msg.sender].role = Role.Donor;
         mint(msg.sender);
     }
 
@@ -121,16 +127,12 @@ contract IPNFT_farcanaLabs is ERC721, Ownable, CommonContract{
         currentTokensCount++;
     }
 
-    function giveCoinsToDonor(address recievier, uint256 coinsCount) public onlyOwner {
-        _giveCoinsToDonor(recievier, coinsCount);
+    function giveMoneyToUser(address recievier, uint256 coinsCount, Role role) public onlyOwner {
+        require(registeredUsers[recievier].isMinted, 'error');
+        _giveMoneyToUser(recievier, coinsCount, role);
     }
-    function giveCoinsToGameStudio(address recievier, uint256 coinsCount) public onlyOwner {
-        _giveCoinsToDonor(recievier, coinsCount);
-    }
-    function giveCoinsToInvestor(address recievier, uint256 coinsCount) public onlyOwner {
-        _giveCoinsToInvestor(recievier, coinsCount);
-    }
-    function giveCoinsToScientist(uint256 coinsCount) public onlyOwner {
-        _giveCoinsToScientist(coinsCount);
+
+    function guaranteedReturn(address payable to, Role role) public onlyOwner {
+        _guaranteedReturn(to, role);
     }
 }   

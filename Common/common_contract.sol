@@ -32,49 +32,23 @@ contract CommonContract is DonorContract, GameStudioContract, InvestorContract, 
         coinCost = amount / initialNumberOfCoins;
     }
 
-    function _guaranteedReturn(address payable to) internal {
-        if(registeredInvestors[to].isValue){
+    function _guaranteedReturn(address payable to, Role role) internal {
+        if(role == Role.Investor)
             to.transfer(registeredInvestors[to].coins * coinCost);
-        }
-        else if(registeredDonors[to].isValue){
-            to.transfer(registeredDonors[to].coins * coinCost);
-        }
-        else if(registeredGameStudios[to].isValue){
+        if(role == Role.Donor)
+            to.transfer(registeredDonors[to].coins * coinCost); 
+        if(role == Role.GameStudio)
             to.transfer(registeredGameStudios[to].coins * coinCost);
-        }
     }
 
-    function _giveCoinsToGameStudio(address recievier, uint256 coinsCount) internal {
+    function _giveMoneyToUser(address recievier, uint256 coinsCount, Role role) internal {
         require(maxSupplyCoins > coinsCount, 'this number of coins exceeds the current limit');
-        require(registeredGameStudios[recievier].isValue, 'incorrect studio address');
-        registeredGameStudios[recievier].coins += coinsCount;
+        if(role == Role.Donor) 
+            registeredDonors[recievier].coins += coinsCount;
+        if(role == Role.GameStudio)
+            registeredGameStudios[recievier].coins += coinsCount;
+        if(role == Role.Investor)
+            registeredInvestors[recievier].coins += coinsCount;
         maxSupplyCoins -= coinsCount;
-    }
-
-    function _giveCoinsToDonor(address recievier, uint256 coinsCount) internal {
-        require(maxSupplyCoins > coinsCount, 'this number of coins exceeds the current limit');
-        require(registeredDonors[recievier].isValue, 'incorrect donor address');
-        registeredDonors[recievier].coins += coinsCount;
-        maxSupplyCoins -= coinsCount;
-    }
-
-    function _giveCoinsToInvestor(address recievier, uint256 coinsCount) internal {
-        require(maxSupplyCoins > coinsCount, 'this number of coins exceeds the current limit');
-        require(registeredInvestors[recievier].isValue, 'incorrect investor address');
-        registeredInvestors[recievier].coins += coinsCount;
-        maxSupplyCoins -= coinsCount;
-    }
-
-    function _giveCoinsToScientist(uint256 coinsCount) internal {
-        require(maxSupplyCoins > coinsCount, 'this number of coins exceeds the current limit');
-        scientist.coins += coinsCount;
-        maxSupplyCoins -= coinsCount;
-    }
-
-    function _penaltyDeadlineScientist(uint256 coinsCount) internal {
-        require(scientist.deadline < block.timestamp, 'the scientist did not violate the deadlines');
-        require(scientist.coins > coinsCount, 'this number of coins exceeds the current limit');
-        scientist.coins -= coinsCount;
-        maxSupplyCoins += coinsCount;
     }
 }
