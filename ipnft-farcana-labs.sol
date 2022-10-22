@@ -7,87 +7,65 @@ import "./Common/common_contract.sol";
 
 contract IPNFT_farcanaLabs is ERC721, Ownable, CommonContract{
     address payable private ipnftWallet;
-
-    uint256 public  currentTokensCount;
-    string  public  baseURI;
+    uint256 public currentTokensCount;
     
-    bool public isMintEnabled;
+    event eMint(address indexed user, uint256 tokenId);
 
-    mapping(address => User) public registeredUsers;
-    mapping(uint256 => Role) public tokenMembership;
+    mapping(address => User) public  registeredUsers;
+    mapping(uint256 => Role) private tokenMembership;
 
     function _baseURI() internal view virtual override returns (string memory) {
-        return baseURI;
+        return "https://farcana.com/";
     }
 
-    function _transfer(
-        address from,
-        address to,
-        uint256 tokenId) internal virtual override {
-            require(false, 'ipnft farcanaLabs not support transfer functional');
-            from; to; tokenId;
+    function _transfer(address from, address to, uint256 tokenId) internal virtual override {
+        require(false, 'ipnft farcanaLabs not support transfer functional');
+        from; to; tokenId;
     }
 
     function tokenURI(uint256 tokenId) public view virtual override returns (string memory) {
         _requireMinted(tokenId);
-        string memory img;
-        Role role = tokenMembership[tokenId];
-        if(role == Role.None)       img = "None.pic";
-        if(role == Role.Donor)      img = "Donor.pic";
-        if(role == Role.Investor)   img = "Investor.pic";
-        if(role == Role.GameStudio) img = "Game Studio.pic";   
-        if(role == Role.Scientist)  img = "Scientist.pic";
-        return string(abi.encodePacked(_baseURI(), img, Strings.toString(tokenId)));
+        return string(abi.encodePacked(_baseURI(), _getURIpic(tokenMembership[tokenId]), Strings.toString(tokenId)));
     }
-    //0xdD870fA1b7C4700F2BD7f44238821C26f7392148
-    constructor(
-        string memory agreement,
-        string memory projectName,
-        string memory symbol,
-        string memory nftURI,
-        uint256 unixTimeDeadline,
-        uint256 coinsCount,
-        uint256 amount, //wei
-        uint256 fixFarcanaLabsShare,
-        address scientistWallet) ERC721(projectName, symbol) {
+    
+    constructor(string memory projectName, string memory symbol) ERC721(projectName, symbol) {
 
-        baseURI = nftURI;
-        scientist.wallet = scientistWallet;
-        scientist.legalAgreement = agreement;
+        scientist.wallet = payable(0xdD870fA1b7C4700F2BD7f44238821C26f7392148);
+        scientist.legalAgreement = "https://www.lawinsider.com/contracts/81bWaJm6ycK";
         scientist.startDate = block.timestamp;
-        scientist.deadline = unixTimeDeadline;
-        scientist.resultLink = "link"; //after change
-        scientist.deadline = 229; //after change
-        setCoinBalance(coinsCount, amount);
-        farcanaLabsTake(fixFarcanaLabsShare);
+        scientist.deadline = 1729553473; //after change
+        uint256 coinsCount = 1000;
+        uint256 amount = 1000; // wei
         ipnftWallet = payable(msg.sender);
-        registeredUsers[scientistWallet].isMinted = true;
-        registeredUsers[scientistWallet].role = Role.Scientist;
-        mint(scientistWallet);
+        setCoinBalance(coinsCount, amount);
+        farcanaLabsTake(100);
+        registeredUsers[scientist.wallet].isMinted = true;
+        registeredUsers[scientist.wallet].role = Role.Scientist;
+        mint(scientist.wallet);
     }
 
     function checkUser(address person) external view returns(User memory){
         return registeredUsers[person];
     }
 
-    function buyCoins(uint256 coinCount) public payable {
-        require(!investAmountReady, 'invest amount ready!');
+    function buyCoins(uint256 coinCount) external payable {
+        require(!isInvestAmountReady, 'invest amount ready!');
+        require(registeredUsers[msg.sender].role == Role.Investor, 'you cant invest money');
         _buyCoins(coinCount);
         if(!registeredUsers[msg.sender].isMinted){
             registeredUsers[msg.sender].isMinted = true; 
-            registeredUsers[msg.sender].role = Role.Investor;
             mint(msg.sender);
         }
         ipnftWallet.transfer(msg.value);
     }
 
-    function addDevice(string memory deviceName, string memory secretKey) public onlyOwner returns(bytes32){
-        require(!datasetReady, 'dataset ready!');
+    function addDevice(string memory deviceName, string memory secretKey) external onlyOwner returns(bytes32){
+        require(!isDatasetReady, 'dataset ready!');
         return _addDevice(deviceName, secretKey);
     }
 
-    function donorRegistration(bytes32 personalHashCode, string memory dataURI) public {
-        require(!datasetReady, 'dataset ready!');
+    function donorRegistration(bytes32 personalHashCode, string memory dataURI) external {
+        require(!isDatasetReady, 'dataset ready!');
         require(!registeredUsers[msg.sender].isMinted, 'this wallet already registered');
         _donorRegistration(personalHashCode, dataURI);
         registeredUsers[msg.sender].isMinted = true;
@@ -95,9 +73,8 @@ contract IPNFT_farcanaLabs is ERC721, Ownable, CommonContract{
         mint(msg.sender);
     }
 
-    function gameStudioRegistration(address studioWallet, string memory studioName) 
-    public onlyOwner {
-        require(!datasetReady, 'dataset ready!');
+    function gameStudioRegistration(address studioWallet, string memory studioName) external onlyOwner {
+        require(!isDatasetReady, 'dataset ready!');
         require(!registeredUsers[studioWallet].isMinted, 'this wallet already registered');
         _gameStudioRegistration(studioWallet, studioName);
         registeredUsers[studioWallet].isMinted = true;
@@ -109,9 +86,8 @@ contract IPNFT_farcanaLabs is ERC721, Ownable, CommonContract{
     address owner,
     string  memory name,
     string  memory maps,
-    string  memory deviceIntegration
-    ) public onlyOwner {
-        require(!datasetReady, 'dataset ready!');
+    string  memory deviceIntegration) external onlyOwner {
+        require(!isDatasetReady, 'dataset ready!');
         _gameRegistration(owner, name, maps, deviceIntegration);
     }
     
@@ -124,15 +100,43 @@ contract IPNFT_farcanaLabs is ERC721, Ownable, CommonContract{
         _safeMint(wallet, currentTokensCount);
         registeredUsers[wallet].tokenId = currentTokensCount;
         tokenMembership[currentTokensCount] = registeredUsers[wallet].role;
+
+        emit eMint(wallet, currentTokensCount);
         currentTokensCount++;
     }
 
-    function giveMoneyToUser(address recievier, uint256 coinsCount, Role role) public onlyOwner {
+    function toogleIsDatasetReady() external onlyOwner {
+        _toogleIsDatasetReady();
+    }
+    
+    function toogleIsInvestAmountReady() external onlyOwner {
+        _toogleIsInvestAmountReady();
+    }
+
+    function toogleIsExperimentReady() external onlyOwner {
+        _toogleIsExperimentReady();
+    }
+
+    function giveMoneyToUser(address recievier, uint256 coinsCount, Role role) external onlyOwner {
         require(registeredUsers[recievier].isMinted, 'error');
         _giveMoneyToUser(recievier, coinsCount, role);
     }
 
-    function guaranteedReturn(address payable to, Role role) public onlyOwner {
+    function guaranteedReturn(address payable to, Role role) external onlyOwner {
         _guaranteedReturn(to, role);
+    }
+
+    function setResultLink(string memory link) external onlyOwner {
+        _setResultLink(link);
+    }
+
+    function whenFirstInvestAmountReady() external onlyOwner payable {
+        require(isInvestAmountReady, 'invest money not ready');
+        _whenFirstInvestAmountReady();
+    }
+
+    function whenGettingBigInvestment(uint256 amount) external onlyOwner {
+        require(isExperimentReady, 'experiment not ready');
+        _whenGettingBigInvestment(amount);
     }
 }   

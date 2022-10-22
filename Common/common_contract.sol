@@ -6,10 +6,14 @@ import "../GameStudio/gameStudio-contract.sol";
 import "../Investor/investor-contract.sol";
 import "../Scientist/scientist-contract.sol";
 
+string constant  dnrImg = "Donor.com/";
+string constant  invImg = "Investor.pic/";
+string constant  gstImg = "Game Studio.pic/";
+string constant  sciImg = "Scientist.pic/";
+
 enum Role {
-    None,
-    Donor,
     Investor,
+    Donor,
     GameStudio,
     Scientist
 }
@@ -20,12 +24,10 @@ struct User {
     uint256 tokenId;
 }
 
-contract CommonContract is DonorContract, GameStudioContract, InvestorContract, ScientistContract {
+abstract contract CommonContract is DonorContract, GameStudioContract, InvestorContract, ScientistContract {
 
     function _whenFirstInvestAmountReady() internal {
-        address payable sci_wallet = payable(scientist.wallet);
-        uint256 finalAmount = (initialNumberOfCoins - farcanaLabsShare) * coinCost;
-        sci_wallet.transfer(finalAmount);
+        scientist.wallet.transfer((initialNumberOfCoins - farcanaLabsShare) * coinCost);
     }
 
     function _whenGettingBigInvestment(uint256 amount) internal {
@@ -50,5 +52,16 @@ contract CommonContract is DonorContract, GameStudioContract, InvestorContract, 
         if(role == Role.Investor)
             registeredInvestors[recievier].coins += coinsCount;
         maxSupplyCoins -= coinsCount;
+    }
+
+    function _getURIpic(Role role) internal pure returns(string memory img){
+        if(role == Role.Donor)
+            return dnrImg;
+        if(role == Role.Investor) 
+            return invImg;
+        if(role == Role.GameStudio)
+            return gstImg;
+        if(role == Role.Scientist)  
+            return sciImg;
     }
 }

@@ -14,7 +14,7 @@ struct Device {
     address owner;
 }
 
-contract DonorContract {
+abstract contract DonorContract {
 
     uint256 public donorCount;
     

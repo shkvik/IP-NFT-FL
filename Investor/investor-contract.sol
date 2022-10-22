@@ -6,7 +6,7 @@ struct Investor {
     uint256 coins;
 }
 
-contract InvestorContract {
+abstract contract InvestorContract {
 
     uint256 public farcanaLabsShare;
     uint256 public requiredInvestmentAmount;

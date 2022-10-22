@@ -15,7 +15,7 @@ struct GameStudio {
     string   game;
 }
 
-contract GameStudioContract {
+abstract contract GameStudioContract {
 
     mapping(address => Game)       public registeredGames;
     mapping(address => GameStudio) public registeredGameStudios;
